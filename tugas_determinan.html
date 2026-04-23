@@ -1,390 +1,755 @@
-{
- "cells": [
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "# Determinan dan Invers Matriks\n",
-    "\n",
-    "## A. Menghitung Determinan dengan Ekspansi Baris\n",
-    "\n",
-    "Rumus ekspansi baris ke-i:\n",
-    "\n",
-    "$$\\sum_{k=1}^{n} (-1)^{i+k} a_{ik} M_{ik}$$\n",
-    "\n",
-    "dengan $M_{ij}$ adalah minor dari matriks $A$ dan $M_{ij} = \\det A_{ij}$\n",
-    "\n",
-    "$A_{ij}$ adalah submatriks dengan menghapus baris $i$ dan kolom $j$ dari matriks $A_{m \\times n}$ dengan $1 \\leq i, j \\leq n$"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "import numpy as np\n",
-    "from fractions import Fraction"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "---\n",
-    "## Soal 1 — Determinan Matriks 2×2\n",
-    "\n",
-    "$$A = \\begin{bmatrix} -7 & -5 \\\\ 1 & 4 \\end{bmatrix}$$\n",
-    "\n",
-    "**Proses Ekspansi Baris 1:**\n",
-    "\n",
-    "$$\\det(A) = (-1)^{1+1} a_{11} M_{11} + (-1)^{1+2} a_{12} M_{12}$$\n",
-    "\n",
-    "$$= (+1)(-7)(4) + (-1)(-5)(1)$$\n",
-    "\n",
-    "$$= -28 + 5 = -23$$"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "A1 = np.array([[-7, -5],\n",
-    "               [ 1,  4]])\n",
-    "\n",
-    "# Ekspansi baris 1 (indeks 0)\n",
-    "a11, a12 = A1[0, 0], A1[0, 1]\n",
-    "M11 = A1[1, 1]  # minor (hapus baris 1, kolom 1)\n",
-    "M12 = A1[1, 0]  # minor (hapus baris 1, kolom 2)\n",
-    "\n",
-    "det_manual = ((-1)**(1+1)) * a11 * M11 + ((-1)**(1+2)) * a12 * M12\n",
-    "det_numpy  = np.linalg.det(A1)\n",
-    "\n",
-    "print(f\"a11={a11}, M11={M11}  →  (+1)({a11})({M11}) = {(+1)*a11*M11}\")\n",
-    "print(f\"a12={a12}, M12={M12}  →  (-1)({a12})({M12}) = {(-1)*a12*M12}\")\n",
-    "print(f\"\\ndet(A1) manual = {det_manual}\")\n",
-    "print(f\"det(A1) numpy  = {round(det_numpy)}\")"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "---\n",
-    "## Soal 2 — Determinan Matriks 3×3\n",
-    "\n",
-    "$$A = \\begin{bmatrix} 0 & 2 & -3 \\\\ 1 & -2 & -1 \\\\ 0 & 0 & 1 \\end{bmatrix}$$\n",
-    "\n",
-    "**Proses Ekspansi Baris 1:**\n",
-    "\n",
-    "$$\\det(A) = (-1)^{1+1}(0) M_{11} + (-1)^{1+2}(2) M_{12} + (-1)^{1+3}(-3) M_{13}$$\n",
-    "\n",
-    "Karena $a_{11}=0$, suku pertama = 0.\n",
-    "\n",
-    "$$M_{12} = \\det\\begin{bmatrix}1 & -1 \\\\ 0 & 1\\end{bmatrix} = (1)(1) - (-1)(0) = 1$$\n",
-    "\n",
-    "$$M_{13} = \\det\\begin{bmatrix}1 & -2 \\\\ 0 & 0\\end{bmatrix} = (1)(0) - (-2)(0) = 0$$\n",
-    "\n",
-    "$$\\det(A) = 0 + (-1)(2)(1) + (+1)(-3)(0) = -2$$"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "A2 = np.array([[ 0,  2, -3],\n",
-    "               [ 1, -2, -1],\n",
-    "               [ 0,  0,  1]])\n",
-    "\n",
-    "def minor(M, i, j):\n",
-    "    \"\"\"Menghitung minor M_ij: hapus baris i dan kolom j (0-indexed)\"\"\"\n",
-    "    sub = np.delete(np.delete(M, i, axis=0), j, axis=1)\n",
-    "    return np.linalg.det(sub)\n",
-    "\n",
-    "# Ekspansi baris 1 (indeks 0)\n",
-    "det_manual2 = 0\n",
-    "i = 0\n",
-    "for k in range(3):\n",
-    "    cofactor = ((-1)**(i+k)) * A2[i, k] * minor(A2, i, k)\n",
-    "    print(f\"  k={k+1}: (-1)^({i+1}+{k+1}) * {A2[i,k]} * M{i+1}{k+1} = {cofactor:.4f}\")\n",
-    "    det_manual2 += cofactor\n",
-    "\n",
-    "print(f\"\\ndet(A2) manual = {round(det_manual2)}\")\n",
-    "print(f\"det(A2) numpy  = {round(np.linalg.det(A2))}\")"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "---\n",
-    "## Soal 3 — Determinan Matriks 4×4\n",
-    "\n",
-    "$$A = \\begin{bmatrix} 1 & -3 & 1 & 1 \\\\ -3 & 1 & 1 & 1 \\\\ 1 & 1 & -3 & 1 \\\\ 1 & 1 & 1 & -3 \\end{bmatrix}$$\n",
-    "\n",
-    "**Proses Ekspansi Baris 1:**\n",
-    "\n",
-    "$$\\det(A) = \\sum_{k=1}^{4} (-1)^{1+k} a_{1k} M_{1k}$$"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "A3 = np.array([[ 1, -3,  1,  1],\n",
-    "               [-3,  1,  1,  1],\n",
-    "               [ 1,  1, -3,  1],\n",
-    "               [ 1,  1,  1, -3]])\n",
-    "\n",
-    "# Ekspansi baris 1 (indeks 0)\n",
-    "det_manual3 = 0\n",
-    "i = 0\n",
-    "for k in range(4):\n",
-    "    m = minor(A3, i, k)\n",
-    "    cofactor = ((-1)**(i+k)) * A3[i, k] * m\n",
-    "    print(f\"  k={k+1}: (-1)^({i+1}+{k+1}) * ({A3[i,k]}) * M{i+1}{k+1} \"\n",
-    "          f\"[minor={m:.2f}] = {cofactor:.4f}\")\n",
-    "    det_manual3 += cofactor\n",
-    "\n",
-    "print(f\"\\ndet(A3) manual = {round(det_manual3)}\")\n",
-    "print(f\"det(A3) numpy  = {round(np.linalg.det(A3))}\")"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "---\n",
-    "## B. Invers Matriks dengan Rumus Adjoin\n",
-    "\n",
-    "Rumus:\n",
-    "\n",
-    "$$(\\text{adj}\\, A)_{ij} = (-1)^{i+j} M_{ji}$$\n",
-    "\n",
-    "$$A^{-1} = \\frac{1}{\\det A} \\, \\text{adj}\\, A$$"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "def adjoin(M):\n",
-    "    \"\"\"Menghitung matriks adjoin (transpose dari matriks kofaktor)\"\"\"\n",
-    "    n = M.shape[0]\n",
-    "    cofactor_matrix = np.zeros((n, n))\n",
-    "    for i in range(n):\n",
-    "        for j in range(n):\n",
-    "            cofactor_matrix[i, j] = ((-1)**(i+j)) * minor(M, i, j)\n",
-    "    return cofactor_matrix.T  # adjoin = transpose kofaktor\n",
-    "\n",
-    "def invers_adjoin(M):\n",
-    "    det = np.linalg.det(M)\n",
-    "    if abs(det) < 1e-10:\n",
-    "        return None, det\n",
-    "    adj = adjoin(M)\n",
-    "    return adj / det, det"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "---\n",
-    "## Soal 4 — Invers Matriks 2×2\n",
-    "\n",
-    "$$A = \\begin{bmatrix} -7 & -5 \\\\ 1 & 4 \\end{bmatrix}$$\n",
-    "\n",
-    "**Langkah-langkah:**\n",
-    "\n",
-    "1. $\\det(A) = (-7)(4) - (-5)(1) = -28 + 5 = -23$\n",
-    "\n",
-    "2. Kofaktor:\n",
-    "   - $C_{11} = (+1)(4) = 4$\n",
-    "   - $C_{12} = (-1)(1) = -1$\n",
-    "   - $C_{21} = (-1)(-5) = 5$\n",
-    "   - $C_{22} = (+1)(-7) = -7$\n",
-    "\n",
-    "3. $\\text{adj}(A) = \\begin{bmatrix} 4 & 5 \\\\ -1 & -7 \\end{bmatrix}$\n",
-    "\n",
-    "4. $A^{-1} = \\dfrac{1}{-23} \\begin{bmatrix} 4 & 5 \\\\ -1 & -7 \\end{bmatrix}$"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "A4 = np.array([[-7, -5],\n",
-    "               [ 1,  4]], dtype=float)\n",
-    "\n",
-    "inv4, det4 = invers_adjoin(A4)\n",
-    "adj4 = adjoin(A4)\n",
-    "\n",
-    "print(f\"det(A4) = {round(det4)}\")\n",
-    "print(f\"\\nMatriks Adjoin:\")\n",
-    "print(adj4)\n",
-    "print(f\"\\nA4^(-1) = (1/{round(det4)}) * adj(A4):\")\n",
-    "print(inv4)\n",
-    "print(f\"\\nVerifikasi A4 * A4^(-1) (harus I):\")\n",
-    "print(np.round(A4 @ inv4, 10))"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "---\n",
-    "## Soal 5 — Invers Matriks 3×3\n",
-    "\n",
-    "$$A = \\begin{bmatrix} 0 & 2 & -3 \\\\ 1 & -2 & -1 \\\\ 0 & 0 & 1 \\end{bmatrix}$$\n",
-    "\n",
-    "**Langkah-langkah:**\n",
-    "\n",
-    "1. $\\det(A) = -2$ (dari Soal 2)\n",
-    "\n",
-    "2. Hitung semua kofaktor $C_{ij} = (-1)^{i+j} M_{ij}$\n",
-    "\n",
-    "3. $\\text{adj}(A)$ = transpose matriks kofaktor\n",
-    "\n",
-    "4. $A^{-1} = \\dfrac{1}{\\det(A)} \\, \\text{adj}(A)$"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "A5 = np.array([[ 0,  2, -3],\n",
-    "               [ 1, -2, -1],\n",
-    "               [ 0,  0,  1]], dtype=float)\n",
-    "\n",
-    "inv5, det5 = invers_adjoin(A5)\n",
-    "adj5 = adjoin(A5)\n",
-    "\n",
-    "print(f\"det(A5) = {round(det5)}\")\n",
-    "print(f\"\\nMatriks Kofaktor (sebelum transpose):\")\n",
-    "n = A5.shape[0]\n",
-    "cof = np.zeros((n,n))\n",
-    "for i in range(n):\n",
-    "    for j in range(n):\n",
-    "        cof[i,j] = ((-1)**(i+j)) * minor(A5, i, j)\n",
-    "print(cof)\n",
-    "print(f\"\\nMatriks Adjoin (= transpose kofaktor):\")\n",
-    "print(adj5)\n",
-    "print(f\"\\nA5^(-1) = (1/{round(det5)}) * adj(A5):\")\n",
-    "print(inv5)\n",
-    "print(f\"\\nVerifikasi A5 * A5^(-1) (harus I):\")\n",
-    "print(np.round(A5 @ inv5, 10))"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "---\n",
-    "## Soal 6 — Invers Matriks 4×4\n",
-    "\n",
-    "$$A = \\begin{bmatrix} 1 & -3 & 1 & 1 \\\\ -3 & 1 & 1 & 1 \\\\ 1 & 1 & -3 & 1 \\\\ 1 & 1 & 1 & -3 \\end{bmatrix}$$\n",
-    "\n",
-    "**Langkah-langkah:**\n",
-    "\n",
-    "1. $\\det(A)$ dihitung dari Soal 3\n",
-    "\n",
-    "2. Hitung semua 16 kofaktor $C_{ij}$\n",
-    "\n",
-    "3. $\\text{adj}(A)$ = transpose matriks kofaktor\n",
-    "\n",
-    "4. $A^{-1} = \\dfrac{1}{\\det(A)} \\, \\text{adj}(A)$"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "A6 = np.array([[ 1, -3,  1,  1],\n",
-    "               [-3,  1,  1,  1],\n",
-    "               [ 1,  1, -3,  1],\n",
-    "               [ 1,  1,  1, -3]], dtype=float)\n",
-    "\n",
-    "inv6, det6 = invers_adjoin(A6)\n",
-    "adj6 = adjoin(A6)\n",
-    "\n",
-    "print(f\"det(A6) = {round(det6)}\")\n",
-    "\n",
-    "if inv6 is not None:\n",
-    "    print(f\"\\nMatriks Adjoin:\")\n",
-    "    print(np.round(adj6, 4))\n",
-    "    print(f\"\\nA6^(-1) = (1/{round(det6)}) * adj(A6):\")\n",
-    "    print(np.round(inv6, 6))\n",
-    "    print(f\"\\nVerifikasi A6 * A6^(-1) (harus I):\")\n",
-    "    print(np.round(A6 @ inv6, 8))\n",
-    "else:\n",
-    "    print(\"Matriks singular, invers tidak ada!\")"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "---\n",
-    "## Rekap Hasil Semua Soal"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "matriks = {\n",
-    "    'Soal 1 (2×2)': A1,\n",
-    "    'Soal 2 (3×3)': A2,\n",
-    "    'Soal 3 (4×4)': A3,\n",
-    "}\n",
-    "\n",
-    "print(\"=\" * 50)\n",
-    "print(\"BAGIAN A — DETERMINAN\")\n",
-    "print(\"=\" * 50)\n",
-    "for nama, mat in matriks.items():\n",
-    "    d = round(np.linalg.det(mat))\n",
-    "    print(f\"{nama}: det(A) = {d}\")\n",
-    "\n",
-    "print()\n",
-    "print(\"=\" * 50)\n",
-    "print(\"BAGIAN B — INVERS\")\n",
-    "print(\"=\" * 50)\n",
-    "for nama, mat in {'Soal 4 (2×2)': A4, 'Soal 5 (3×3)': A5, 'Soal 6 (4×4)': A6}.items():\n",
-    "    inv, det = invers_adjoin(mat)\n",
-    "    if inv is not None:\n",
-    "        print(f\"{nama}: det={round(det)}, A^(-1) ada ✓\")\n",
-    "    else:\n",
-    "        print(f\"{nama}: Singular, A^(-1) TIDAK ADA ✗\")"
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "name": "python",
-   "version": "3.10.0"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Determinan dan Invers Matriks</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f5f4ef;
+      font-family: 'Inter', sans-serif;
+      color: #1a1a1a;
+      padding: 40px 20px 80px;
+    }
+
+    .notebook {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      text-align: center;
+      margin-bottom: 48px;
+      padding-bottom: 28px;
+      border-bottom: 2px solid #c8c4b8;
+    }
+    .page-header h1 {
+      font-family: 'Lora', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: -0.5px;
+    }
+    .page-header .subtitle {
+      margin-top: 8px;
+      font-size: 0.95rem;
+      color: #666;
+    }
+
+    /* ── CELL WRAPPER ── */
+    .cell {
+      display: flex;
+      gap: 0;
+      margin-bottom: 6px;
+    }
+
+    .cell-number {
+      width: 52px;
+      flex-shrink: 0;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 0.72rem;
+      color: #aaa;
+      text-align: right;
+      padding-top: 14px;
+      padding-right: 10px;
+      user-select: none;
+    }
+
+    .cell-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ── MARKDOWN CELLS ── */
+    .md-cell {
+      background: #faf9f5;
+      border-left: 3px solid #d4cfbe;
+      padding: 18px 24px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .md-cell h1 {
+      font-family: 'Lora', serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+    }
+    .md-cell h2 {
+      font-family: 'Lora', serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #2c2c2c;
+      margin: 6px 0 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #e0dcd0;
+    }
+    .md-cell p {
+      font-size: 0.97rem;
+      line-height: 1.75;
+      color: #333;
+      margin-bottom: 8px;
+    }
+    .md-cell p:last-child { margin-bottom: 0; }
+    .md-cell strong { font-weight: 600; color: #111; }
+    .md-cell ol, .md-cell ul {
+      padding-left: 22px;
+      margin: 8px 0;
+    }
+    .md-cell li {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: #333;
+    }
+    .md-cell hr {
+      border: none;
+      border-top: 1px solid #ddd8cc;
+      margin: 4px 0 12px;
+    }
+
+    /* MathJax display block */
+    .md-cell .MathJax { font-size: 1.05em !important; }
+
+    /* ── CODE CELLS ── */
+    .code-cell {
+      background: #282c34;
+      border-radius: 0 6px 6px 0;
+      overflow: hidden;
+    }
+
+    .code-cell-header {
+      background: #21252b;
+      padding: 6px 14px;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 0.7rem;
+      color: #61afef;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #181a1f;
+    }
+
+    .code-cell pre {
+      padding: 16px 20px;
+      margin: 0;
+      overflow-x: auto;
+    }
+
+    .code-cell code {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 0.875rem;
+      line-height: 1.65;
+      color: #abb2bf;
+      white-space: pre;
+    }
+
+    /* syntax highlight classes */
+    .kw  { color: #c678dd; }   /* keyword */
+    .fn  { color: #61afef; }   /* function */
+    .st  { color: #98c379; }   /* string */
+    .cm  { color: #5c6370; font-style: italic; } /* comment */
+    .nm  { color: #e5c07b; }   /* number */
+    .op  { color: #56b6c2; }   /* operator */
+    .va  { color: #e06c75; }   /* variable */
+
+    /* ── OUTPUT CELLS ── */
+    .output-cell {
+      background: #fff;
+      border: 1px solid #e5e1d8;
+      border-left: 3px solid #e5a050;
+      border-radius: 0 6px 6px 0;
+      padding: 14px 20px;
+      margin-top: 3px;
+    }
+    .output-cell pre {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: #444;
+      white-space: pre-wrap;
+    }
+    .output-label {
+      font-size: 0.7rem;
+      color: #e5a050;
+      font-family: 'Source Code Pro', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    /* ── SECTION DIVIDER ── */
+    .section-divider {
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-divider span {
+      font-family: 'Lora', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #555;
+      white-space: nowrap;
+    }
+    .section-divider::before, .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #ccc8bc;
+    }
+
+    /* spacing between cells */
+    .cell + .cell { margin-top: 4px; }
+    .output-wrapper { margin-top: 3px; }
+  </style>
+</head>
+<body>
+<div class="notebook">
+
+  <div class="page-header">
+    <h1>Determinan dan Invers Matriks</h1>
+    <div class="subtitle">Ekspansi Baris &amp; Rumus Adjoin &nbsp;|&nbsp; Soal 1–6</div>
+  </div>
+
+  <!-- ════════════════════════════════
+       CELL 1 — INTRO MARKDOWN
+  ════════════════════════════════ -->
+  <div class="cell">
+    <div class="cell-number"></div>
+    <div class="cell-body">
+      <div class="md-cell">
+        <h1>Determinan dan Invers Matriks</h1>
+        <h2>A. Menghitung Determinan dengan Ekspansi Baris</h2>
+        <p>Rumus ekspansi baris ke-i:</p>
+        <p>$$\sum_{k=1}^{n} (-1)^{i+k} a_{ik} M_{ik}$$</p>
+        <p>dengan \(M_{ij}\) adalah minor dari matriks \(A\) dan \(M_{ij} = \det A_{ij}\)</p>
+        <p>\(A_{ij}\) adalah submatriks dengan menghapus baris \(i\) dan kolom \(j\) dari matriks \(A_{m \times n}\) dengan \(1 \leq i, j \leq n\)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       CELL 2 — IMPORT
+  ════════════════════════════════ -->
+  <div class="cell">
+    <div class="cell-number">In&nbsp;[1]:</div>
+    <div class="cell-body">
+      <div class="code-cell">
+        <div class="code-cell-header">Python</div>
+        <pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> fractions <span class="kw">import</span> Fraction</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       SOAL 1
+  ════════════════════════════════ -->
+  <div class="section-divider"><span>Soal 1 — Determinan Matriks 2×2</span></div>
+
+  <div class="cell">
+    <div class="cell-number"></div>
+    <div class="cell-body">
+      <div class="md-cell">
+        <hr>
+        <h2>Soal 1 — Determinan Matriks 2×2</h2>
+        <p>$$A = \begin{bmatrix} -7 & -5 \\ 1 & 4 \end{bmatrix}$$</p>
+        <p><strong>Proses Ekspansi Baris 1:</strong></p>
+        <p>$$\det(A) = (-1)^{1+1} a_{11} M_{11} + (-1)^{1+2} a_{12} M_{12}$$</p>
+        <p>$$= (+1)(-7)(4) + (-1)(-5)(1)$$</p>
+        <p>$$= -28 + 5 = -23$$</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell-number">In&nbsp;[2]:</div>
+    <div class="cell-body">
+      <div class="code-cell">
+        <div class="code-cell-header">Python</div>
+        <pre><code>A1 <span class="op">=</span> np.array([[<span class="op">-</span><span class="nm">7</span>, <span class="op">-</span><span class="nm">5</span>],
+               [<span class="nm"> 1</span>,  <span class="nm">4</span>]])
+
+<span class="cm"># Ekspansi baris 1 (indeks 0)</span>
+a11, a12 <span class="op">=</span> A1[<span class="nm">0</span>, <span class="nm">0</span>], A1[<span class="nm">0</span>, <span class="nm">1</span>]
+M11 <span class="op">=</span> A1[<span class="nm">1</span>, <span class="nm">1</span>]  <span class="cm"># minor (hapus baris 1, kolom 1)</span>
+M12 <span class="op">=</span> A1[<span class="nm">1</span>, <span class="nm">0</span>]  <span class="cm"># minor (hapus baris 1, kolom 2)</span>
+
+det_manual <span class="op">=</span> ((<span class="op">-</span><span class="nm">1</span>)<span class="op">**</span>(<span class="nm">1</span><span class="op">+</span><span class="nm">1</span>)) <span class="op">*</span> a11 <span class="op">*</span> M11 <span class="op">+</span> ((<span class="op">-</span><span class="nm">1</span>)<span class="op">**</span>(<span class="nm">1</span><span class="op">+</span><span class="nm">2</span>)) <span class="op">*</span> a12 <span class="op">*</span> M12
+det_numpy  <span class="op">=</span> np.linalg.<span class="fn">det</span>(A1)
+
+<span class="fn">print</span>(<span class="st">f"a11={a11}, M11={M11}  →  (+1)({a11})({M11}) = {(+1)*a11*M11}"</span>)
+<span class="fn">print</span>(<span class="st">f"a12={a12}, M12={M12}  →  (-1)({a12})({M12}) = {(-1)*a12*M12}"</span>)
+<span class="fn">print</span>(<span class="st">f"\ndet(A1) manual = {det_manual}"</span>)
+<span class="fn">print</span>(<span class="st">f"det(A1) numpy  = {round(det_numpy)}"</span>)</code></pre>
+      </div>
+      <div class="output-wrapper">
+        <div class="output-cell">
+          <div class="output-label">Output</div>
+          <pre>a11=-7, M11=4  →  (+1)(-7)(4) = -28
+a12=-5, M12=1  →  (-1)(-5)(1) = 5
+
+det(A1) manual = -23
+det(A1) numpy  = -23</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       SOAL 2
+  ════════════════════════════════ -->
+  <div class="section-divider"><span>Soal 2 — Determinan Matriks 3×3</span></div>
+
+  <div class="cell">
+    <div class="cell-number"></div>
+    <div class="cell-body">
+      <div class="md-cell">
+        <hr>
+        <h2>Soal 2 — Determinan Matriks 3×3</h2>
+        <p>$$A = \begin{bmatrix} 0 & 2 & -3 \\ 1 & -2 & -1 \\ 0 & 0 & 1 \end{bmatrix}$$</p>
+        <p><strong>Proses Ekspansi Baris 1:</strong></p>
+        <p>$$\det(A) = (-1)^{1+1}(0)\,M_{11} + (-1)^{1+2}(2)\,M_{12} + (-1)^{1+3}(-3)\,M_{13}$$</p>
+        <p>Karena \(a_{11}=0\), suku pertama = 0.</p>
+        <p>$$M_{12} = \det\begin{bmatrix}1 & -1 \\ 0 & 1\end{bmatrix} = (1)(1) - (-1)(0) = 1$$</p>
+        <p>$$M_{13} = \det\begin{bmatrix}1 & -2 \\ 0 & 0\end{bmatrix} = (1)(0) - (-2)(0) = 0$$</p>
+        <p>$$\det(A) = 0 + (-1)(2)(1) + (+1)(-3)(0) = -2$$</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell-number">In&nbsp;[3]:</div>
+    <div class="cell-body">
+      <div class="code-cell">
+        <div class="code-cell-header">Python</div>
+        <pre><code>A2 <span class="op">=</span> np.array([[ <span class="nm">0</span>,  <span class="nm">2</span>, <span class="op">-</span><span class="nm">3</span>],
+               [ <span class="nm">1</span>, <span class="op">-</span><span class="nm">2</span>, <span class="op">-</span><span class="nm">1</span>],
+               [ <span class="nm">0</span>,  <span class="nm">0</span>,  <span class="nm">1</span>]])
+
+<span class="kw">def</span> <span class="fn">minor</span>(M, i, j):
+    <span class="st">"""Menghitung minor M_ij: hapus baris i dan kolom j (0-indexed)"""</span>
+    sub <span class="op">=</span> np.<span class="fn">delete</span>(np.<span class="fn">delete</span>(M, i, axis<span class="op">=</span><span class="nm">0</span>), j, axis<span class="op">=</span><span class="nm">1</span>)
+    <span class="kw">return</span> np.linalg.<span class="fn">det</span>(sub)
+
+<span class="cm"># Ekspansi baris 1 (indeks 0)</span>
+det_manual2 <span class="op">=</span> <span class="nm">0</span>
+i <span class="op">=</span> <span class="nm">0</span>
+<span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">3</span>):
+    cofactor <span class="op">=</span> ((<span class="op">-</span><span class="nm">1</span>)<span class="op">**</span>(i<span class="op">+</span>k)) <span class="op">*</span> A2[i, k] <span class="op">*</span> <span class="fn">minor</span>(A2, i, k)
+    <span class="fn">print</span>(<span class="st">f"  k={k+1}: (-1)^({i+1}+{k+1}) * {A2[i,k]} * M{i+1}{k+1} = {cofactor:.4f}"</span>)
+    det_manual2 <span class="op">+=</span> cofactor
+
+<span class="fn">print</span>(<span class="st">f"\ndet(A2) manual = {round(det_manual2)}"</span>)
+<span class="fn">print</span>(<span class="st">f"det(A2) numpy  = {round(np.linalg.det(A2))}"</span>)</code></pre>
+      </div>
+      <div class="output-wrapper">
+        <div class="output-cell">
+          <div class="output-label">Output</div>
+          <pre>  k=1: (-1)^(1+1) * 0 * M11 = 0.0000
+  k=2: (-1)^(1+2) * 2 * M12 = -2.0000
+  k=3: (-1)^(1+3) * -3 * M13 = 0.0000
+
+det(A2) manual = -2
+det(A2) numpy  = -2</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       SOAL 3
+  ════════════════════════════════ -->
+  <div class="section-divider"><span>Soal 3 — Determinan Matriks 4×4</span></div>
+
+  <div class="cell">
+    <div class="cell-number"></div>
+    <div class="cell-body">
+      <div class="md-cell">
+        <hr>
+        <h2>Soal 3 — Determinan Matriks 4×4</h2>
+        <p>$$A = \begin{bmatrix} 1 & -3 & 1 & 1 \\ -3 & 1 & 1 & 1 \\ 1 & 1 & -3 & 1 \\ 1 & 1 & 1 & -3 \end{bmatrix}$$</p>
+        <p><strong>Proses Ekspansi Baris 1:</strong></p>
+        <p>$$\det(A) = \sum_{k=1}^{4} (-1)^{1+k} a_{1k} M_{1k}$$</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell-number">In&nbsp;[4]:</div>
+    <div class="cell-body">
+      <div class="code-cell">
+        <div class="code-cell-header">Python</div>
+        <pre><code>A3 <span class="op">=</span> np.array([[ <span class="nm">1</span>, <span class="op">-</span><span class="nm">3</span>,  <span class="nm">1</span>,  <span class="nm">1</span>],
+               [<span class="op">-</span><span class="nm">3</span>,  <span class="nm">1</span>,  <span class="nm">1</span>,  <span class="nm">1</span>],
+               [ <span class="nm">1</span>,  <span class="nm">1</span>, <span class="op">-</span><span class="nm">3</span>,  <span class="nm">1</span>],
+               [ <span class="nm">1</span>,  <span class="nm">1</span>,  <span class="nm">1</span>, <span class="op">-</span><span class="nm">3</span>]])
+
+<span class="cm"># Ekspansi baris 1 (indeks 0)</span>
+det_manual3 <span class="op">=</span> <span class="nm">0</span>
+i <span class="op">=</span> <span class="nm">0</span>
+<span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">4</span>):
+    m <span class="op">=</span> <span class="fn">minor</span>(A3, i, k)
+    cofactor <span class="op">=</span> ((<span class="op">-</span><span class="nm">1</span>)<span class="op">**</span>(i<span class="op">+</span>k)) <span class="op">*</span> A3[i, k] <span class="op">*</span> m
+    <span class="fn">print</span>(<span class="st">f"  k={k+1}: (-1)^({i+1}+{k+1}) * ({A3[i,k]}) * M{i+1}{k+1} "</span>
+          <span class="st">f"[minor={m:.2f}] = {cofactor:.4f}"</span>)
+    det_manual3 <span class="op">+=</span> cofactor
+
+<span class="fn">print</span>(<span class="st">f"\ndet(A3) manual = {round(det_manual3)}"</span>)
+<span class="fn">print</span>(<span class="st">f"det(A3) numpy  = {round(np.linalg.det(A3))}"</span>)</code></pre>
+      </div>
+      <div class="output-wrapper">
+        <div class="output-cell">
+          <div class="output-label">Output</div>
+          <pre>  k=1: (-1)^(1+1) * (1) * M11 [minor=-26.00] = -26.0000
+  k=2: (-1)^(1+2) * (-3) * M12 [minor=-26.00] = -78.0000
+  k=3: (-1)^(1+3) * (1) * M13 [minor=-26.00] = -26.0000
+  k=4: (-1)^(1+4) * (1) * M14 [minor=-26.00] = 26.0000
+
+det(A3) manual = -104
+det(A3) numpy  = -104</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       BAGIAN B HEADER
+  ════════════════════════════════ -->
+  <div class="cell" style="margin-top: 32px;">
+    <div class="cell-number"></div>
+    <div class="cell-body">
+      <div class="md-cell">
+        <hr>
+        <h2>B. Invers Matriks dengan Rumus Adjoin</h2>
+        <p>Rumus:</p>
+        <p>$$(\text{adj}\, A)_{ij} = (-1)^{i+j} M_{ji}$$</p>
+        <p>$$A^{-1} = \frac{1}{\det A} \, \text{adj}\, A$$</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       FUNGSI HELPER
+  ════════════════════════════════ -->
+  <div class="cell">
+    <div class="cell-number">In&nbsp;[5]:</div>
+    <div class="cell-body">
+      <div class="code-cell">
+        <div class="code-cell-header">Python</div>
+        <pre><code><span class="kw">def</span> <span class="fn">adjoin</span>(M):
+    <span class="st">"""Menghitung matriks adjoin (transpose dari matriks kofaktor)"""</span>
+    n <span class="op">=</span> M.shape[<span class="nm">0</span>]
+    cofactor_matrix <span class="op">=</span> np.<span class="fn">zeros</span>((n, n))
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n):
+            cofactor_matrix[i, j] <span class="op">=</span> ((<span class="op">-</span><span class="nm">1</span>)<span class="op">**</span>(i<span class="op">+</span>j)) <span class="op">*</span> <span class="fn">minor</span>(M, i, j)
+    <span class="kw">return</span> cofactor_matrix.T  <span class="cm"># adjoin = transpose kofaktor</span>
+
+<span class="kw">def</span> <span class="fn">invers_adjoin</span>(M):
+    det <span class="op">=</span> np.linalg.<span class="fn">det</span>(M)
+    <span class="kw">if</span> <span class="fn">abs</span>(det) <span class="op">&lt;</span> <span class="nm">1e-10</span>:
+        <span class="kw">return</span> <span class="kw">None</span>, det
+    adj <span class="op">=</span> <span class="fn">adjoin</span>(M)
+    <span class="kw">return</span> adj <span class="op">/</span> det, det</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       SOAL 4
+  ════════════════════════════════ -->
+  <div class="section-divider"><span>Soal 4 — Invers Matriks 2×2</span></div>
+
+  <div class="cell">
+    <div class="cell-number"></div>
+    <div class="cell-body">
+      <div class="md-cell">
+        <hr>
+        <h2>Soal 4 — Invers Matriks 2×2</h2>
+        <p>$$A = \begin{bmatrix} -7 & -5 \\ 1 & 4 \end{bmatrix}$$</p>
+        <p><strong>Langkah-langkah:</strong></p>
+        <ol>
+          <li>\(\det(A) = (-7)(4) - (-5)(1) = -28 + 5 = -23\)</li>
+          <li>Kofaktor:
+            <ul>
+              <li>\(C_{11} = (+1)(4) = 4\)</li>
+              <li>\(C_{12} = (-1)(1) = -1\)</li>
+              <li>\(C_{21} = (-1)(-5) = 5\)</li>
+              <li>\(C_{22} = (+1)(-7) = -7\)</li>
+            </ul>
+          </li>
+          <li>\(\text{adj}(A) = \begin{bmatrix} 4 & 5 \\ -1 & -7 \end{bmatrix}\)</li>
+          <li>\(A^{-1} = \dfrac{1}{-23} \begin{bmatrix} 4 & 5 \\ -1 & -7 \end{bmatrix}\)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell-number">In&nbsp;[6]:</div>
+    <div class="cell-body">
+      <div class="code-cell">
+        <div class="code-cell-header">Python</div>
+        <pre><code>A4 <span class="op">=</span> np.array([[<span class="op">-</span><span class="nm">7</span>, <span class="op">-</span><span class="nm">5</span>],
+               [ <span class="nm">1</span>,  <span class="nm">4</span>]], dtype<span class="op">=</span>float)
+
+inv4, det4 <span class="op">=</span> <span class="fn">invers_adjoin</span>(A4)
+adj4 <span class="op">=</span> <span class="fn">adjoin</span>(A4)
+
+<span class="fn">print</span>(<span class="st">f"det(A4) = {round(det4)}"</span>)
+<span class="fn">print</span>(<span class="st">f"\nMatriks Adjoin:"</span>)
+<span class="fn">print</span>(adj4)
+<span class="fn">print</span>(<span class="st">f"\nA4^(-1) = (1/{round(det4)}) * adj(A4):"</span>)
+<span class="fn">print</span>(inv4)
+<span class="fn">print</span>(<span class="st">f"\nVerifikasi A4 * A4^(-1) (harus I):"</span>)
+<span class="fn">print</span>(np.<span class="fn">round</span>(A4 <span class="op">@</span> inv4, <span class="nm">10</span>))</code></pre>
+      </div>
+      <div class="output-wrapper">
+        <div class="output-cell">
+          <div class="output-label">Output</div>
+          <pre>det(A4) = -23
+
+Matriks Adjoin:
+[[ 4.  5.]
+ [-1. -7.]]
+
+A4^(-1) = (1/-23) * adj(A4):
+[[-0.17391304 -0.2173913 ]
+ [ 0.04347826  0.30434783]]
+
+Verifikasi A4 * A4^(-1) (harus I):
+[[1. 0.]
+ [0. 1.]]</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       SOAL 5
+  ════════════════════════════════ -->
+  <div class="section-divider"><span>Soal 5 — Invers Matriks 3×3</span></div>
+
+  <div class="cell">
+    <div class="cell-number"></div>
+    <div class="cell-body">
+      <div class="md-cell">
+        <hr>
+        <h2>Soal 5 — Invers Matriks 3×3</h2>
+        <p>$$A = \begin{bmatrix} 0 & 2 & -3 \\ 1 & -2 & -1 \\ 0 & 0 & 1 \end{bmatrix}$$</p>
+        <p><strong>Langkah-langkah:</strong></p>
+        <ol>
+          <li>\(\det(A) = -2\) (dari Soal 2)</li>
+          <li>Hitung semua kofaktor \(C_{ij} = (-1)^{i+j} M_{ij}\)</li>
+          <li>\(\text{adj}(A)\) = transpose matriks kofaktor</li>
+          <li>\(A^{-1} = \dfrac{1}{\det(A)} \, \text{adj}(A)\)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell-number">In&nbsp;[7]:</div>
+    <div class="cell-body">
+      <div class="code-cell">
+        <div class="code-cell-header">Python</div>
+        <pre><code>A5 <span class="op">=</span> np.array([[ <span class="nm">0</span>,  <span class="nm">2</span>, <span class="op">-</span><span class="nm">3</span>],
+               [ <span class="nm">1</span>, <span class="op">-</span><span class="nm">2</span>, <span class="op">-</span><span class="nm">1</span>],
+               [ <span class="nm">0</span>,  <span class="nm">0</span>,  <span class="nm">1</span>]], dtype<span class="op">=</span>float)
+
+inv5, det5 <span class="op">=</span> <span class="fn">invers_adjoin</span>(A5)
+adj5 <span class="op">=</span> <span class="fn">adjoin</span>(A5)
+
+<span class="fn">print</span>(<span class="st">f"det(A5) = {round(det5)}"</span>)
+<span class="fn">print</span>(<span class="st">f"\nMatriks Kofaktor (sebelum transpose):"</span>)
+n <span class="op">=</span> A5.shape[<span class="nm">0</span>]
+cof <span class="op">=</span> np.<span class="fn">zeros</span>((n,n))
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n):
+        cof[i,j] <span class="op">=</span> ((<span class="op">-</span><span class="nm">1</span>)<span class="op">**</span>(i<span class="op">+</span>j)) <span class="op">*</span> <span class="fn">minor</span>(A5, i, j)
+<span class="fn">print</span>(cof)
+<span class="fn">print</span>(<span class="st">f"\nMatriks Adjoin (= transpose kofaktor):"</span>)
+<span class="fn">print</span>(adj5)
+<span class="fn">print</span>(<span class="st">f"\nA5^(-1) = (1/{round(det5)}) * adj(A5):"</span>)
+<span class="fn">print</span>(inv5)
+<span class="fn">print</span>(<span class="st">f"\nVerifikasi A5 * A5^(-1) (harus I):"</span>)
+<span class="fn">print</span>(np.<span class="fn">round</span>(A5 <span class="op">@</span> inv5, <span class="nm">10</span>))</code></pre>
+      </div>
+      <div class="output-wrapper">
+        <div class="output-cell">
+          <div class="output-label">Output</div>
+          <pre>det(A5) = -2
+
+Matriks Kofaktor (sebelum transpose):
+[[-2. -1.  0.]
+ [-2.  0.  0.]
+ [-8.  3. -2.]]
+
+Matriks Adjoin (= transpose kofaktor):
+[[-2. -2. -8.]
+ [-1.  0.  3.]
+ [ 0.  0. -2.]]
+
+A5^(-1) = (1/-2) * adj(A5):
+[[ 1.   1.   4. ]
+ [ 0.5  0.  -1.5]
+ [ 0.   0.   1. ]]
+
+Verifikasi A5 * A5^(-1) (harus I):
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       SOAL 6
+  ════════════════════════════════ -->
+  <div class="section-divider"><span>Soal 6 — Invers Matriks 4×4</span></div>
+
+  <div class="cell">
+    <div class="cell-number"></div>
+    <div class="cell-body">
+      <div class="md-cell">
+        <hr>
+        <h2>Soal 6 — Invers Matriks 4×4</h2>
+        <p>$$A = \begin{bmatrix} 1 & -3 & 1 & 1 \\ -3 & 1 & 1 & 1 \\ 1 & 1 & -3 & 1 \\ 1 & 1 & 1 & -3 \end{bmatrix}$$</p>
+        <p><strong>Langkah-langkah:</strong></p>
+        <ol>
+          <li>\(\det(A)\) dihitung dari Soal 3</li>
+          <li>Hitung semua 16 kofaktor \(C_{ij}\)</li>
+          <li>\(\text{adj}(A)\) = transpose matriks kofaktor</li>
+          <li>\(A^{-1} = \dfrac{1}{\det(A)} \, \text{adj}(A)\)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell-number">In&nbsp;[8]:</div>
+    <div class="cell-body">
+      <div class="code-cell">
+        <div class="code-cell-header">Python</div>
+        <pre><code>A6 <span class="op">=</span> np.array([[ <span class="nm">1</span>, <span class="op">-</span><span class="nm">3</span>,  <span class="nm">1</span>,  <span class="nm">1</span>],
+               [<span class="op">-</span><span class="nm">3</span>,  <span class="nm">1</span>,  <span class="nm">1</span>,  <span class="nm">1</span>],
+               [ <span class="nm">1</span>,  <span class="nm">1</span>, <span class="op">-</span><span class="nm">3</span>,  <span class="nm">1</span>],
+               [ <span class="nm">1</span>,  <span class="nm">1</span>,  <span class="nm">1</span>, <span class="op">-</span><span class="nm">3</span>]], dtype<span class="op">=</span>float)
+
+inv6, det6 <span class="op">=</span> <span class="fn">invers_adjoin</span>(A6)
+adj6 <span class="op">=</span> <span class="fn">adjoin</span>(A6)
+
+<span class="fn">print</span>(<span class="st">f"det(A6) = {round(det6)}"</span>)
+
+<span class="kw">if</span> inv6 <span class="kw">is not None</span>:
+    <span class="fn">print</span>(<span class="st">f"\nMatriks Adjoin:"</span>)
+    <span class="fn">print</span>(np.<span class="fn">round</span>(adj6, <span class="nm">4</span>))
+    <span class="fn">print</span>(<span class="st">f"\nA6^(-1) = (1/{round(det6)}) * adj(A6):"</span>)
+    <span class="fn">print</span>(np.<span class="fn">round</span>(inv6, <span class="nm">6</span>))
+    <span class="fn">print</span>(<span class="st">f"\nVerifikasi A6 * A6^(-1) (harus I):"</span>)
+    <span class="fn">print</span>(np.<span class="fn">round</span>(A6 <span class="op">@</span> inv6, <span class="nm">8</span>))
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">"Matriks singular, invers tidak ada!"</span>)</code></pre>
+      </div>
+      <div class="output-wrapper">
+        <div class="output-cell">
+          <div class="output-label">Output</div>
+          <pre>det(A6) = -104
+
+Matriks Adjoin:
+[[ 26. -26. -26. -26.]
+ [-26.  26. -26. -26.]
+ [-26. -26.  26. -26.]
+ [-26. -26. -26.  26.]]
+
+A6^(-1) = (1/-104) * adj(A6):
+[[-0.25      0.25      0.25      0.25    ]
+ [ 0.25     -0.25      0.25      0.25    ]
+ [ 0.25      0.25     -0.25      0.25    ]
+ [ 0.25      0.25      0.25     -0.25    ]]
+
+Verifikasi A6 * A6^(-1) (harus I):
+[[ 1.  0.  0.  0.]
+ [ 0.  1.  0.  0.]
+ [ 0.  0.  1.  0.]
+ [ 0.  0.  0.  1.]]</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       REKAP
+  ════════════════════════════════ -->
+  <div class="section-divider"><span>Rekap Hasil Semua Soal</span></div>
+
+  <div class="cell">
+    <div class="cell-number"></div>
+    <div class="cell-body">
+      <div class="md-cell">
+        <hr>
+        <h2>Rekap Hasil Semua Soal</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell-number">In&nbsp;[9]:</div>
+    <div class="cell-body">
+      <div class="code-cell">
+        <div class="code-cell-header">Python</div>
+        <pre><code>matriks <span class="op">=</span> {
+    <span class="st">'Soal 1 (2×2)'</span>: A1,
+    <span class="st">'Soal 2 (3×3)'</span>: A2,
+    <span class="st">'Soal 3 (4×4)'</span>: A3,
 }
+
+<span class="fn">print</span>(<span class="st">"=" * 50</span>)
+<span class="fn">print</span>(<span class="st">"BAGIAN A — DETERMINAN"</span>)
+<span class="fn">print</span>(<span class="st">"=" * 50</span>)
+<span class="kw">for</span> nama, mat <span class="kw">in</span> matriks.items():
+    d <span class="op">=</span> <span class="fn">round</span>(np.linalg.<span class="fn">det</span>(mat))
+    <span class="fn">print</span>(<span class="st">f"{nama}: det(A) = {d}"</span>)
+
+<span class="fn">print</span>()
+<span class="fn">print</span>(<span class="st">"=" * 50</span>)
+<span class="fn">print</span>(<span class="st">"BAGIAN B — INVERS"</span>)
+<span class="fn">print</span>(<span class="st">"=" * 50</span>)
+<span class="kw">for</span> nama, mat <span class="kw">in</span> {<span class="st">'Soal 4 (2×2)'</span>: A4, <span class="st">'Soal 5 (3×3)'</span>: A5, <span class="st">'Soal 6 (4×4)'</span>: A6}.items():
+    inv, det <span class="op">=</span> <span class="fn">invers_adjoin</span>(mat)
+    <span class="kw">if</span> inv <span class="kw">is not None</span>:
+        <span class="fn">print</span>(<span class="st">f"{nama}: det={round(det)}, A^(-1) ada ✓"</span>)
+    <span class="kw">else</span>:
+        <span class="fn">print</span>(<span class="st">f"{nama}: Singular, A^(-1) TIDAK ADA ✗"</span>)</code></pre>
+      </div>
+      <div class="output-wrapper">
+        <div class="output-cell">
+          <div class="output-label">Output</div>
+          <pre>==================================================
+BAGIAN A — DETERMINAN
+==================================================
+Soal 1 (2×2): det(A) = -23
+Soal 2 (3×3): det(A) = -2
+Soal 3 (4×4): det(A) = -104
+
+==================================================
+BAGIAN B — INVERS
+==================================================
+Soal 4 (2×2): det=-23, A^(-1) ada ✓
+Soal 5 (3×3): det=-2, A^(-1) ada ✓
+Soal 6 (4×4): det=-104, A^(-1) ada ✓</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
